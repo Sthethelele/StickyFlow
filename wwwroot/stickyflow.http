@@ -1,0 +1,118 @@
+@StickyFlow_HostAddress = http://localhost:5255
+@ContentType = application/json
+
+### Authentication
+# Register a new user
+POST {{StickyFlow_HostAddress}}/api/auth/register
+Content-Type: {{ContentType}}
+
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "fullName": "John Doe",
+  "timeZone": "UTC"
+}
+
+### Login and get JWT token
+# @name login
+POST {{StickyFlow_HostAddress}}/api/auth/login
+Content-Type: {{ContentType}}
+
+{
+  "email": "user@example.com",
+  "password": "Password123!"
+}
+
+### Store the JWT token for authenticated requests
+@authToken = {{login.response.body.token}}
+
+### Notes Endpoints
+# Get all notes (authenticated)
+GET {{StickyFlow_HostAddress}}/api/notes
+Authorization: Bearer {{authToken}}
+Accept: {{ContentType}}
+
+### Create a new note
+POST {{StickyFlow_HostAddress}}/api/notes
+Authorization: Bearer {{authToken}}
+Content-Type: {{ContentType}}
+
+{
+  "title": "Important Meeting",
+  "content": "Discuss project timeline with team",
+  "priorityId": 2,
+  "statusId": 1,
+  "dueDate": "2023-12-15T14:00:00"
+}
+
+### Get a specific note
+@noteId = {{create_note.response.body.noteId}}
+GET {{StickyFlow_HostAddress}}/api/notes/{{noteId}}
+Authorization: Bearer {{authToken}}
+Accept: {{ContentType}}
+
+### Update a note
+PUT {{StickyFlow_HostAddress}}/api/notes/{{noteId}}
+Authorization: Bearer {{authToken}}
+Content-Type: {{ContentType}}
+
+{
+  "title": "Updated Meeting Title",
+  "content": "Updated discussion points",
+  "statusId": 2
+}
+
+### Delete a note (soft delete)
+DELETE {{StickyFlow_HostAddress}}/api/notes/{{noteId}}
+Authorization: Bearer {{authToken}}
+
+### User Profile
+# Get current user profile
+GET {{StickyFlow_HostAddress}}/api/users/profile
+Authorization: Bearer {{authToken}}
+Accept: {{ContentType}}
+
+### Update profile
+PUT {{StickyFlow_HostAddress}}/api/users/profile
+Authorization: Bearer {{authToken}}
+Content-Type: {{ContentType}}
+
+{
+  "fullName": "John Updated",
+  "timeZone": "America/New_York"
+}
+
+### Password Reset Flow
+# Request password reset
+POST {{StickyFlow_HostAddress}}/api/auth/forgot-password
+Content-Type: {{ContentType}}
+
+{
+  "email": "user@example.com"
+}
+
+### Complete password reset
+POST {{StickyFlow_HostAddress}}/api/auth/reset-password
+Content-Type: {{ContentType}}
+
+{
+  "email": "user@example.com",
+  "token": "reset_token_from_email",
+  "newPassword": "NewPassword123!"
+}
+
+### Priorities Endpoints
+# Get all priority levels
+GET {{StickyFlow_HostAddress}}/api/priorities
+Authorization: Bearer {{authToken}}
+Accept: {{ContentType}}
+
+### Statuses Endpoints
+# Get all status options
+GET {{StickyFlow_HostAddress}}/api/statuses
+Authorization: Bearer {{authToken}}
+Accept: {{ContentType}}
+
+### WeatherForecast (example endpoint)
+GET {{StickyFlow_HostAddress}}/weatherforecast
+Accept: {{ContentType}}
