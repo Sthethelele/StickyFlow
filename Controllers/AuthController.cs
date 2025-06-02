@@ -218,19 +218,28 @@ namespace StickyFlow.Controllers
         {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.NameIdentifier, user.Id)
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // Safely parse ExpiryHours as a double, whether it's a string or number
+            double expiryHours;
+            var expiryHoursValue = _configuration["Jwt:ExpiryHours"];
+            if (!double.TryParse(expiryHoursValue, out expiryHours))
+            {
+                expiryHours = 24; // Default to 24 hours if parsing fails
+                _logger.LogWarning("Failed to parse Jwt:ExpiryHours from configuration. Defaulting to 24 hours.");
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:ValidIssuer"],
                 audience: _configuration["Jwt:ValidAudience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(Convert.ToDouble(_configuration["Jwt:ExpiryHours"])),
+                expires: DateTime.Now.AddHours(expiryHours),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
