@@ -319,7 +319,7 @@
     <section id="contact" class="py-5 contact-section">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="fw-bold">Get in Touch</h2>
+                <h2 class="fw-bold">Contact Us</h2>
                 <p class="text-muted">We'd love to hear from you! Reach out with any questions or feedback.</p>
             </div>
             <div class="row">
@@ -347,7 +347,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4">
         <div class="container">
-            <p>&copy; 2025 StickyFlow. All rights reserved.</p>
+            <p>© 2025 StickyFlow. All rights reserved.</p>
             <div>
                 <a href="#" class="text-white mx-2">Privacy Policy</a>
                 <a href="#" class="text-white mx-2">Terms of Service</a>
@@ -514,6 +514,7 @@
             // Contact Form Submission (basic client-side handling)
             const contactForm = document.getElementById('contactForm');
             if (contactForm) {
+                console.log('Contact form element found in the DOM');
                 contactForm.addEventListener('submit', (e) => {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
@@ -523,6 +524,16 @@
                     alert('Thank you for your message! We will get back to you soon.');
                     contactForm.reset();
                 });
+            } else {
+                console.error('Contact form not found in the DOM');
+            }
+
+            // Verify Contact Section is present
+            const contactSection = document.getElementById('contact');
+            if (contactSection) {
+                console.log('Contact section found in the DOM');
+            } else {
+                console.error('Contact section not found in the DOM');
             }
 
             // Expose handleLogin to be called from login.html
