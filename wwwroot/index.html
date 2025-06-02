@@ -407,7 +407,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <form>
+                    <form id="contactForm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name</label>
                             <input type="text" class="form-control" id="name" required>
@@ -603,16 +603,17 @@
                 }
             };
 
-            // Initialize Google Sign-In
+            // Initialize Google Sign-In with implicit flow
             try {
                 google.accounts.id.initialize({
                     client_id: '204699764852-qneavf12bga9c8i1rtq2q3erhsto3f91.apps.googleusercontent.com',
                     callback: window.handleGoogleLogin,
                     auto_select: false,
                     context: 'signin',
+                    ux_mode: 'popup', // Ensure popup mode for implicit flow
                     nonce: crypto.randomUUID(),
                 });
-                console.log('Google Sign-In initialized successfully');
+                console.log('Google Sign-In initialized successfully with implicit flow');
             } catch (error) {
                 console.error('Failed to initialize Google Sign-In:', error);
             }
