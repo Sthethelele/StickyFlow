@@ -6,6 +6,8 @@
     <meta name="google-signin-client_id" content="204699764852-qneavf12bga9c8i1rtq2q3erhsto3f91.apps.googleusercontent.com">
     <title>StickyFlow - Smart Note-Taking with Reminders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --primary-color: #6c63ff;
@@ -58,6 +60,50 @@
                 background-color: var(--primary-color);
                 color: white;
             }
+
+        .btn-google {
+            background-color: #ffffff;
+            border: 1px solid #dadce0;
+            color: #3c4043;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+            .btn-google:hover {
+                background-color: #f8f9fa;
+                border-color: #dadce0;
+            }
+
+            .btn-google .bi-google {
+                font-size: 1.2rem;
+            }
+
+        .how-it-works-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        .pricing-card {
+            transition: transform 0.3s ease;
+        }
+
+            .pricing-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .contact-section {
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -102,12 +148,12 @@
                     <p class="lead mb-4">StickyFlow helps you organize notes, set priorities, and get reminders so you stay on top of everything that matters.</p>
                     <div class="d-flex gap-3">
                         <a href="#" class="btn btn-primary btn-lg get-started-free-btn">Get Started Free</a>
+                        <button class="btn btn-google btn-lg google-login-btn">
+                            <i class="bi bi-google"></i> Login with Google
+                        </button>
                         <a href="#how-it-works" class="btn btn-outline-primary btn-lg">Learn More</a>
                     </div>
                 </div>
-                <!-- <div class="col-lg-6">
-                    <img src="https://via.placeholder.com/600x400" alt="StickyFlow Dashboard" class="img-fluid rounded shadow">
-                </div> -->
             </div>
         </div>
     </section>
@@ -182,90 +228,30 @@
     <section id="how-it-works" class="py-5 bg-light">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="fw-bold">How StickyFlow Works</h2>
-                <p class="text-muted">Get started in just a few simple steps</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="card border-0 bg-transparent">
-                        <div class="card-body text-center">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem; margin-bottom: 1rem;">1</div>
-                            <h4>Create an Account</h4>
-                            <p>Sign up with your email and start organizing your tasks immediately.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card border-0 bg-transparent">
-                        <div class="card-body text-center">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem; margin-bottom: 1rem;">2</div>
-                            <h4>Add Your Notes</h4>
-                            <p>Create notes, set priorities, and organize them by status.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card border-0 bg-transparent">
-                        <div class="card-body text-center">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 1.5rem; margin-bottom: 1rem;">3</div>
-                            <h4>Set Reminders</h4>
-                            <p>Add due dates and get notified before deadlines approach.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <a href="#" class="btn btn-primary btn-lg start-now-btn">Start Now - It's Free</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="py-5">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold">What Our Users Say</h2>
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Get started with StickyFlow in three simple steps</p>
             </div>
             <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <p class="card-text">"StickyFlow has completely transformed how I organize my work. The reminder system is a lifesaver!"</p>
-                            <div class="d-flex align-items-center">
-                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
-                                <div>
-                                    <h6 class="mb-0">Sarah Johnson</h6>
-                                    <small class="text-muted">Project Manager</small>
-                                </div>
-                            </div>
+                <div class="col-md-12">
+                    <div class="how-it-works-step">
+                        <span class="step-number">1</span>
+                        <div>
+                            <h4>Create Your Notes</h4>
+                            <p>Sign up and start adding your notes with tags and priorities to keep everything organized.</p>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <p class="card-text">"I've tried many note apps, but StickyFlow's priority system is exactly what I needed to stay focused."</p>
-                            <div class="d-flex align-items-center">
-                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
-                                <div>
-                                    <h6 class="mb-0">Michael Chen</h6>
-                                    <small class="text-muted">Software Developer</small>
-                                </div>
-                            </div>
+                    <div class="how-it-works-step">
+                        <span class="step-number">2</span>
+                        <div>
+                            <h4>Set Reminders</h4>
+                            <p>Add deadlines to your notes and receive email reminders to stay on track.</p>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <p class="card-text">"The email reminders have saved me from missing so many deadlines. Highly recommended!"</p>
-                            <div class="d-flex align-items-center">
-                                <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="User">
-                                <div>
-                                    <h6 class="mb-0">Emily Rodriguez</h6>
-                                    <small class="text-muted">Freelance Writer</small>
-                                </div>
-                            </div>
+                    <div class="how-it-works-step">
+                        <span class="step-number">3</span>
+                        <div>
+                            <h4>Track & Succeed</h4>
+                            <p>Monitor your progress with our intuitive dashboard and achieve your goals.</p>
                         </div>
                     </div>
                 </div>
@@ -274,94 +260,71 @@
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="py-5 bg-light">
+    <section id="pricing" class="py-5">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="fw-bold">Simple, Transparent Pricing</h2>
-                <p class="text-muted">Choose the plan that works for you</p>
+                <h2 class="fw-bold">Pricing Plans</h2>
+                <p class="text-muted">Choose a plan that fits your needs</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="card h-100">
+                    <div class="card pricing-card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
                             <h4 class="card-title">Free</h4>
-                            <h2 class="card-title pricing-card-title">$0<small class="text-muted fw-light">/mo</small></h2>
-                            <ul class="list-unstyled mt-3 mb-4">
+                            <h3 class="card-price">$0<span class="text-muted">/month</span></h3>
+                            <ul class="list-unstyled mt-3">
                                 <li>Up to 50 notes</li>
                                 <li>Basic reminders</li>
                                 <li>Email support</li>
-                                <li>1GB storage</li>
                             </ul>
-                            <a href="#" class="w-100 btn btn-outline-primary get-started-btn">Get Started</a>
+                            <a href="#" class="btn btn-outline-primary mt-3 get-started-btn">Get Started</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card h-100 border-primary shadow">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="my-0 fw-normal text-center">Pro</h4>
-                        </div>
+                    <div class="card pricing-card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
-                            <h2 class="card-title pricing-card-title">$9<small class="text-muted fw-light">/mo</small></h2>
-                            <ul class="list-unstyled mt-3 mb-4">
+                            <h4 class="card-title">Pro</h4>
+                            <h3 class="card-price">$9<span class="text-muted">/month</span></h3>
+                            <ul class="list-unstyled mt-3">
                                 <li>Unlimited notes</li>
                                 <li>Advanced reminders</li>
                                 <li>Priority support</li>
-                                <li>10GB storage</li>
-                                <li>Team sharing</li>
+                                <li>Multi-device sync</li>
                             </ul>
-                            <a href="#" class="w-100 btn btn-primary get-started-btn">Get Started</a>
+                            <a href="#" class="btn btn-primary mt-3 get-started-btn">Get Started</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card h-100">
+                    <div class="card pricing-card h-100 border-0 shadow-sm">
                         <div class="card-body text-center p-4">
                             <h4 class="card-title">Enterprise</h4>
-                            <h2 class="card-title pricing-card-title">$29<small class="text-muted fw-light">/mo</small></h2>
-                            <ul class="list-unstyled mt-3 mb-4">
-                                <li>Unlimited everything</li>
+                            <h3 class="card-price">Custom</h3>
+                            <ul class="list-unstyled mt-3">
+                                <li>Unlimited notes</li>
                                 <li>Custom integrations</li>
-                                <li>24/7 support</li>
-                                <li>100GB storage</li>
-                                <li>Advanced analytics</li>
+                                <li>Dedicated support</li>
+                                <li>Team collaboration</li>
                             </ul>
-                            <a href="#contact" class="w-100 btn btn-outline-primary">Contact Us</a>
+                            <a href="#contact" class="btn btn-outline-primary mt-3">Contact Us</a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container text-center">
-            <h2 class="text-white mb-4">Ready to boost your productivity?</h2>
-            <p class="text-white-50 mb-4">Join thousands of users who are getting more done with StickyFlow</p>
-            <a href="#" class="btn btn-light btn-lg px-4 me-2 signup-btn">Sign Up Free</a>
-            <a href="#how-it-works" class="btn btn-outline-light btn-lg px-4">Learn More</a>
         </div>
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="py-5">
+    <section id="contact" class="py-5 contact-section">
         <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Get in Touch</h2>
+                <p class="text-muted">We'd love to hear from you! Reach out with any questions or feedback.</p>
+            </div>
             <div class="row">
-                <div class="col-lg-6">
-                    <h2 class="fw-bold mb-4">Contact Us</h2>
-                    <p class="mb-4">Have questions or feedback? We'd love to hear from you!</p>
-                    <div class="mb-4">
-                        <h5>Email</h5>
-                        <p>support@stickyflow.com</p>
-                    </div>
-                    <div class="mb-4">
-                        <h5>Office</h5>
-                        <p>123 Productivity Lane<br>San Francisco, CA 94107</p>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <form>
+                <div class="col-md-6 mx-auto">
+                    <form id="contactForm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name</label>
                             <input type="text" class="form-control" id="name" required>
@@ -374,7 +337,7 @@
                             <label for="message" class="form-label">Message</label>
                             <textarea class="form-control" id="message" rows="4" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Send Message</button>
+                        <button type="submit" class="btn btn-primary w-100">Send Message</button>
                     </form>
                 </div>
             </div>
@@ -382,42 +345,12 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <footer class="bg-dark text-white text-center py-4">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>StickyFlow</h5>
-                    <p>The smart note-taking app that helps you stay organized and never miss deadlines.</p>
-                </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <h5>Product</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#features" class="text-white-50">Features</a></li>
-                        <li><a href="#pricing" class="text-white-50">Pricing</a></li>
-                        <li><a href="#" class="text-white-50">API</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-2 mb-4 mb-md-0">
-                    <h5>Company</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-white-50">About</a></li>
-                        <li><a href="#" class="text-white-50">Blog</a></li>
-                        <li><a href="#" class="text-white-50">Careers</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Subscribe to our newsletter</h5>
-                    <form class="mt-3">
-                        <div class="input-group">
-                            <input type="email" class="form-control" placeholder="Your email">
-                            <button class="btn btn-primary" type="submit">Subscribe</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="text-center">
-                <p class="mb-0">© 2025 StickyFlow. All rights reserved.</p>
+            <p>&copy; 2025 StickyFlow. All rights reserved.</p>
+            <div>
+                <a href="#" class="text-white mx-2">Privacy Policy</a>
+                <a href="#" class="text-white mx-2">Terms of Service</a>
             </div>
         </div>
     </footer>
@@ -425,6 +358,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM fully loaded and parsed');
+
             // Check if localStorage is available
             const storageAvailable = () => {
                 try {
@@ -438,48 +373,156 @@
             };
 
             const isStorageAvailable = storageAvailable();
+            if (!isStorageAvailable) {
+                console.warn('Local storage is not available.');
+            }
 
             // Select all buttons that should navigate to register page
             const signupButtons = document.querySelectorAll('a[href="/register"], .signup-btn, .get-started-free-btn, .get-started-btn, .start-now-btn');
             signupButtons.forEach(button => {
                 button.addEventListener('click', (e) => {
-                    e.preventDefault(); // Prevent default anchor behavior
+                    e.preventDefault();
                     window.location.href = '/register.html';
                 });
             });
 
-            // Select login button and navigate to login page
+            // Select login button and trigger Google Sign-In
             const loginButton = document.querySelector('a[href="/login"], .login-btn');
-            loginButton.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent default anchor behavior
-                window.location.href = '/login.html';
-            });
+            if (loginButton) {
+                loginButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Login button clicked, triggering Google Sign-In');
+                    google.accounts.id.prompt((notification) => {
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            console.log('Google Sign-In prompt not displayed or skipped:', notification.getNotDisplayedReason());
+                            alert('Please enable pop-ups or try again to sign in with Google.');
+                        }
+                    });
+                });
+            } else {
+                console.error('Login button not found in the DOM.');
+            }
 
-            // Login functionality
+            // Login functionality for email/password
             async function handleLogin(email, password) {
                 if (!isStorageAvailable) {
                     alert('Local storage is not available. Please enable it or use a different browser.');
                     return;
                 }
 
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password }),
-                });
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password }),
+                    });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const token = data.token;
-                    if (token) {
-                        localStorage.setItem('token', token); // Store JWT token
-                        window.location.href = '/dashboard.html'; // Redirect to dashboard
+                    if (response.ok) {
+                        const data = await response.json();
+                        const token = data.token;
+                        if (token) {
+                            localStorage.setItem('token', token);
+                            window.location.href = '/dashboard.html';
+                        } else {
+                            alert('Login failed: No token received.');
+                        }
+                    } else {
+                        alert('Login failed. Please check your credentials.');
                     }
-                } else {
-                    alert('Login failed. Please check your credentials.');
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('An error occurred during login. Please try again.');
                 }
+            }
+
+            // Google Sign-In handler
+            window.handleGoogleLogin = async (response) => {
+                if (!isStorageAvailable) {
+                    alert('Local storage is not available. Please enable it or use a different browser.');
+                    return;
+                }
+
+                try {
+                    const idToken = response.credential;
+                    console.log('Received Google ID token:', idToken);
+                    const apiResponse = await fetch('/api/auth/google-login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ idToken }),
+                    });
+
+                    if (apiResponse.ok) {
+                        const data = await apiResponse.json();
+                        console.log('API response:', data);
+                        if (data.token) {
+                            localStorage.setItem('token', data.token);
+                            window.location.href = '/dashboard.html';
+                        } else if (data.newUser) {
+                            const { email, name } = data.googleData;
+                            const encodedEmail = encodeURIComponent(email);
+                            const encodedName = encodeURIComponent(name);
+                            window.location.href = `/register.html?email=${encodedEmail}&name=${encodedName}`;
+                        } else {
+                            alert('Google login failed: Invalid response from server.');
+                        }
+                    } else {
+                        const errorData = await apiResponse.json();
+                        alert(`Google login failed: ${errorData.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Google login error:', error);
+                    alert('An error occurred during Google login. Please try again.');
+                }
+            };
+
+            // Initialize Google Sign-In
+            try {
+                google.accounts.id.initialize({
+                    client_id: '204699764852-qneavf12bga9c8i1rtq2q3erhsto3f91.apps.googleusercontent.com',
+                    callback: window.handleGoogleLogin,
+                    auto_select: false,
+                    context: 'signin',
+                    nonce: crypto.randomUUID(),
+                });
+                console.log('Google Sign-In initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize Google Sign-In:', error);
+            }
+
+            // Render Google Sign-In button
+            const googleButton = document.querySelector('.google-login-btn');
+            if (googleButton) {
+                try {
+                    google.accounts.id.renderButton(googleButton, {
+                        theme: 'outline',
+                        size: 'large',
+                        text: 'signin_with',
+                        logo_alignment: 'left',
+                    });
+                    console.log('Google Sign-In button rendered successfully');
+                } catch (error) {
+                    console.error('Failed to render Google Sign-In button:', error);
+                }
+            } else {
+                console.error('Google login button not found in the DOM.');
+            }
+
+            // Contact Form Submission (basic client-side handling)
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+                    const message = document.getElementById('message').value;
+                    console.log('Contact form submitted:', { name, email, message });
+                    alert('Thank you for your message! We will get back to you soon.');
+                    contactForm.reset();
+                });
             }
 
             // Expose handleLogin to be called from login.html

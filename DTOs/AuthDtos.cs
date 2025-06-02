@@ -4,16 +4,27 @@ namespace StickyFlow.Dtos
 {
     public class StickyFlowRegisterRequest
     {
-        [Required, EmailAddress] public string Email { get; set; }
-        [Required, StringLength(100, MinimumLength = 6)] public string Password { get; set; }
-        [Required] public string FullName { get; set; }
+        [Required(ErrorMessage = "FullName is required")]
+        public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; }
+
         public string? TimeZone { get; set; }
     }
 
     public class StickyFlowLoginRequest
     {
-        [Required, EmailAddress] public string Email { get; set; }
-        [Required] public string Password { get; set; }
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; }
     }
 
     public class StickyFlowForgotPasswordRequest

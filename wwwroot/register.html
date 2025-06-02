@@ -5,11 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StickyFlow - Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6c63ff;
+            --secondary-color: #4d44db;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+            .btn-primary:hover {
+                background-color: var(--secondary-color);
+                border-color: var(--secondary-color);
+            }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Register</h2>
-        <form id="registerForm">
+        <h2 class="text-center mb-4">Register for StickyFlow</h2>
+        <form id="registerForm" class="col-md-6 mx-auto">
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="fullName" required>
+            </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" required>
@@ -19,48 +39,53 @@
                 <input type="password" class="form-control" id="password" required>
             </div>
             <div class="mb-3">
-                <label for="fullName" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="fullName" required>
+                <label for="timeZone" class="form-label">Time Zone</label>
+                <input type="text" class="form-control" id="timeZone" placeholder="e.g., UTC">
             </div>
-            <div class="mb-3">
-                <label for="timeZone" class="form-label">Time Zone (e.g., UTC)</label>
-                <input type="text" class="form-control" id="timeZone">
-            </div>
-            <button type="submit" class="btn btn-primary">Sign Up</button>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
         </form>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Pre-fill form with Google data if available
-            const googleData = JSON.parse(localStorage.getItem('googleData') || '{}');
-            if (googleData.email) {
-                document.getElementById('email').value = googleData.email;
-                document.getElementById('email').readOnly = true; // Prevent changing Google email
-            }
-            if (googleData.name) {
-                document.getElementById('fullName').value = googleData.name;
-            }
+            // Get query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get('email') || '';
+            const name = urlParams.get('name') || '';
 
+            // Pre-fill form fields
+            document.getElementById('fullName').value = name;
+            document.getElementById('email').value = email;
+
+            // Handle form submission
             document.getElementById('registerForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const fullName = document.getElementById('fullName').value;
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
-                const fullName = document.getElementById('fullName').value;
-                const timeZone = document.getElementById('timeZone').value;
+                const timeZone = document.getElementById('timeZone').value || 'UTC';
 
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, fullName, timeZone }),
-                });
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fullName, email, password, timeZone }),
+                    });
 
-                if (response.ok) {
-                    alert('Registration successful! Please log in.');
-                    localStorage.removeItem('googleData'); // Clear Google data after registration
-                    window.location.href = '/index.html'; // Redirect to index to sign in
-                } else {
-                    alert('Registration failed. Please try again.');
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert(data.message || 'Registration successful! Please log in.');
+                        window.location.href = '/login.html';
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Registration failed: ${errorData.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    alert('An error occurred during registration. Please try again.');
                 }
             });
         });
