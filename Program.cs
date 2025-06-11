@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,9 +15,34 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddAutoMapper(typeof(Program)); 
-// Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddControllersWithViews();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
+        ValidAudience = builder.Configuration["Jwt:ValidAudience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+    options.SignInScheme = IdentityConstants.ExternalScheme;
+});
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddHostedService<ReminderBackgroundService>();
@@ -30,50 +59,32 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
-// Add DbContext
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddHttpContextAccessor();
 
-// Add Identity
 builder.Services.AddIdentity<StickyFlow.Models.ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Add to your service collection
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Email"));
 
-// Configure JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:ValidIssuer"],
-        ValidAudience = builder.Configuration["Jwt:ValidAudience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
-});
-
-// Build the app
 var app = builder.Build();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+else
+{
+    app.UseDeveloperExceptionPage();
+}
 
-// Configure the HTTP request pipeline.
-app.UseDefaultFiles(); // Serve index.html as default
-app.UseStaticFiles(); // Serve static files from wwwroot
-
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
-
 app.UseAuthentication();
 app.Use(async (context, next) =>
 {
@@ -112,10 +123,11 @@ app.Use(async (context, next) =>
     }
     await next(context);
 });
+app.UseHttpsRedirection();
+app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.MapFallbackToFile("index.html"); // Fallback to index.html for unmatched routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
