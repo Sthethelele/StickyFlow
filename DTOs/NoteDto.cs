@@ -3,17 +3,18 @@
 namespace StickyFlow.Dtos
 {
     public record NoteDto(
-    Guid NoteId,
-    string Title,
-    string Content,
-    int PriorityId,
-    string PriorityName,
-    string PriorityColor, // Matches Priority.Color, not ColorCode
-    int StatusId,
-    string StatusName,
-    DateTime? DueDate,
-    DateTime CreatedAt,
-    DateTime? LastModified);
+         Guid NoteId,
+         string Title,
+         string Content,
+         int PriorityId,
+         string PriorityName,
+         string PriorityColorCode, // Rename to match database
+         int StatusId,
+         string StatusName,
+         DateTime? DueDate,
+         DateTime CreatedAt,
+         DateTime? LastModified);
+
 
     public record NoteCreateDto(
         [property: Required, MaxLength(200)] string Title,

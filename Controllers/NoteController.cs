@@ -28,14 +28,11 @@ namespace StickyFlow.Controllers
             ILogger<NotesController> logger)
         {
             _context = context;
-            _mapper = mapper;
             _reminderService = reminderService;
             _logger = logger;
+            _mapper = mapper;
         }
 
-        /// <summary>
-        /// Get all notes for the current user with optional filtering
-        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<NoteDto>), 200)]
         [ProducesResponseType(401)]
@@ -45,14 +42,12 @@ namespace StickyFlow.Controllers
             [FromQuery] bool includeDeleted = false)
         {
             var userId = User.GetUserId();
-
             var query = _context.Notes
                 .Where(n => n.UserId == userId)
                 .Include(n => n.Priority)
                 .Include(n => n.Status)
                 .AsQueryable();
 
-            // Apply filters
             if (status.HasValue)
             {
                 query = query.Where(n => n.Status.Name == status.ToString());
@@ -74,13 +69,9 @@ namespace StickyFlow.Controllers
                 .ThenByDescending(n => n.Priority.Level)
                 .ToListAsync();
 
-            var noteDtos = _mapper.Map<IEnumerable<NoteDto>>(notes); // Use AutoMapper
-            return Ok(noteDtos);
+            return Ok(_mapper.Map<IEnumerable<NoteDto>>(notes));
         }
 
-        /// <summary>
-        /// Get a specific note by ID
-        /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(NoteDto), 200)]
         [ProducesResponseType(404)]
@@ -99,20 +90,30 @@ namespace StickyFlow.Controllers
             return Ok(_mapper.Map<NoteDto>(note));
         }
 
-        /// <summary>
-        /// Create a new note
-        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(NoteDto), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> CreateNote([FromBody] NoteCreateDto dto)
         {
+            _logger.LogInformation("CreateNote called with DTO: {@Dto}", dto);
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                _logger.LogWarning("ModelState invalid: {Errors}", string.Join("; ", errors));
+                return BadRequest(new { message = "Validation failed", errors });
             }
 
             var userId = User.GetUserId();
+            _logger.LogInformation("UserId: {UserId}", userId);
+
+            var priority = await _context.Priorities.FindAsync(dto.PriorityId);
+            var status = await _context.Statuses.FindAsync(dto.StatusId);
+            if (priority == null || status == null)
+            {
+                _logger.LogWarning("Invalid PriorityId {PriorityId} or StatusId {StatusId}", dto.PriorityId, dto.StatusId);
+                return BadRequest(new { message = "Invalid priority or status" });
+            }
+
             var note = new Note
             {
                 NoteId = Guid.NewGuid(),
@@ -125,23 +126,37 @@ namespace StickyFlow.Controllers
             };
 
             note.UpdateAuditFields(userId, isNew: true);
-
             _context.Notes.Add(note);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Note saved: {NoteId}", note.NoteId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving note: {Message}", ex.Message);
+                return StatusCode(500, new { message = "Error saving note", error = ex.Message });
+            }
 
             if (note.DueDate.HasValue)
             {
-                _reminderService.ScheduleReminder(note.NoteId, userId, note.DueDate.Value);
+                try
+                {
+                    _reminderService.ScheduleReminder(note.NoteId, userId, note.DueDate.Value);
+                    _logger.LogInformation("Reminder scheduled for note: {NoteId}", note.NoteId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error scheduling reminder for note: {NoteId}", note.NoteId);
+                }
             }
 
             _logger.LogInformation("Note created: {NoteId} by user {UserId}", note.NoteId, userId);
-
             return CreatedAtAction(nameof(GetNote), new { id = note.NoteId }, _mapper.Map<NoteDto>(note));
         }
 
-        /// <summary>
-        /// Update an existing note
-        /// </summary>
+
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(NoteDto), 200)]
         [ProducesResponseType(400)]
@@ -156,6 +171,24 @@ namespace StickyFlow.Controllers
                 return NotFound();
             }
 
+            if (dto.PriorityId.HasValue)
+            {
+                var priority = await _context.Priorities.FindAsync(dto.PriorityId.Value);
+                if (priority == null)
+                {
+                    return BadRequest(new { message = "Invalid priority" });
+                }
+            }
+
+            if (dto.StatusId.HasValue)
+            {
+                var status = await _context.Statuses.FindAsync(dto.StatusId.Value);
+                if (status == null)
+                {
+                    return BadRequest(new { message = "Invalid status" });
+                }
+            }
+
             note.Title = dto.Title ?? note.Title;
             note.Content = dto.Content ?? note.Content;
             note.PriorityId = dto.PriorityId ?? note.PriorityId;
@@ -163,9 +196,16 @@ namespace StickyFlow.Controllers
             note.DueDate = dto.DueDate ?? note.DueDate;
             note.UpdateAuditFields(User.GetUserId());
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating note: {NoteId}", note.NoteId);
+                return StatusCode(500, new { message = "Error updating note" });
+            }
 
-            // Reschedule reminder if due date changed
             if (dto.DueDate.HasValue && dto.DueDate != note.DueDate)
             {
                 _reminderService.RescheduleReminder(note.NoteId, dto.DueDate.Value);
@@ -174,9 +214,6 @@ namespace StickyFlow.Controllers
             return Ok(_mapper.Map<NoteDto>(note));
         }
 
-        /// <summary>
-        /// Soft delete a note
-        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
@@ -194,15 +231,11 @@ namespace StickyFlow.Controllers
             note.UpdateAuditFields(User.GetUserId());
             await _context.SaveChangesAsync();
 
-            // Cancel any pending reminders
             _reminderService.CancelReminder(note.NoteId);
 
             return NoContent();
         }
 
-        /// <summary>
-        /// Restore a soft-deleted note
-        /// </summary>
         [HttpPatch("{id}/restore")]
         [ProducesResponseType(typeof(NoteDto), 200)]
         [ProducesResponseType(404)]
@@ -226,7 +259,6 @@ namespace StickyFlow.Controllers
             note.UpdateAuditFields(User.GetUserId());
             await _context.SaveChangesAsync();
 
-            // Reschedule reminder if due date exists
             if (note.DueDate.HasValue)
             {
                 _reminderService.ScheduleReminder(note.NoteId, note.UserId, note.DueDate.Value);

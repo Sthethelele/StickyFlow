@@ -80,9 +80,9 @@ namespace StickyFlow.Data
             builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
 
             // Value conversions
-            builder.Entity<Priority>()
-                .Property(p => p.Weight)
-                .HasPrecision(5, 2);
+            //builder.Entity<Priority>()
+            //    .Property(p => p.Weight)
+            //    .HasPrecision(5, 2);
 
             // JSON serialization for complex types
             builder.Entity<Note>()

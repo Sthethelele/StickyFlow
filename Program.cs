@@ -13,6 +13,7 @@ using StickyFlow.Models;
 using StickyFlow.Dtos;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(typeof(Program));
@@ -57,6 +58,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 
@@ -125,7 +127,25 @@ app.Use(async (context, next) =>
 });
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (contextFeature != null)
+        {
+            await context.Response.WriteAsync(new
+            {
+                message = "An error occurred",
+                error = contextFeature.Error.Message
+            }.ToString());
+        }
+    });
+});
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 app.MapFallbackToFile("index.html");
