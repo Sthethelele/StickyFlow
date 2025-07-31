@@ -419,7 +419,7 @@ namespace StickyFlow.Migrations
 
             modelBuilder.Entity("StickyFlow.Models.Priority", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PriorityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -438,7 +438,11 @@ namespace StickyFlow.Migrations
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PriorityId");
 
                     b.ToTable("Priorities");
                 });

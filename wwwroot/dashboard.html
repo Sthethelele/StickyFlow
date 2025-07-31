@@ -159,8 +159,6 @@
                                         <option value="low">Low</option>
                                         <option value="medium">Medium</option>
                                         <option value="high">High</option>
-                                        <option value="high">Critical</option>
-                                        <option value="high">None</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
@@ -168,15 +166,17 @@
                                     <select class="form-select" id="noteStatus">
                                         <option value="todo">Todo</option>
                                         <option value="in-progress">In Progress</option>
-                                        <option value="done">Completed</option>
-                                        <option value="done">Blocked</option>
-                                        <option value="done">Cancelled</option>
+                                        <option value="done">Done</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="noteDueDate" class="form-label">Due Date</label>
                                     <input type="date" class="form-control" id="noteDueDate">
                                 </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="noteTags" class="form-label">Tags (comma-separated)</label>
+                                <input type="text" class="form-control" id="noteTags" placeholder="e.g., work, personal, urgent">
                             </div>
                             <button type="submit" class="btn btn-primary">Add Note</button>
                         </form>
@@ -189,15 +189,12 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold">Your Notes</h4>
                     <div>
-                        <select class="form-select d-inline-block w-auto me-2" id="filterStatus">
+                        <select class="form-select d-inline-block w-auto" id="filterStatus">
                             <option value="all">All Statuses</option>
                             <option value="todo">Todo</option>
                             <option value="in-progress">In Progress</option>
-                            <option value="done">Completed</option>
-                            <option value="done">Blocked</option>
-                            <option value="done">Cancelled</option>
+                            <option value="done">Done</option>
                         </select>
-                        <button class="btn btn-outline-primary" onclick="toggleDeletedNotes()">Show Deleted Notes</button>
                     </div>
                 </div>
                 <div class="row" id="notesContainer">
@@ -225,392 +222,186 @@
         </div>
     </div>
 
-    <!-- Edit Note Modal -->
-    <div class="modal fade" id="editNoteModal" tabindex="-1" aria-labelledby="editNoteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editNoteModalLabel">Edit Note</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editNoteForm">
-                        <input type="hidden" id="editNoteId">
-                        <div class="mb-3">
-                            <label for="editNoteTitle" class="form-label">Title</label>
-                            <input type="text" class="form-control" id="editNoteTitle" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editNoteContent" class="form-label">Content</label>
-                            <textarea class="form-control" id="editNoteContent" rows="4" required></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="editNotePriority" class="form-label">Priority</label>
-                                <select class="form-select" id="editNotePriority" required>
-                                    <!-- Populated dynamically -->
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="editNoteStatus" class="form-label">Status</label>
-                                <select class="form-select" id="editNoteStatus" required>
-                                    <!-- Populated dynamically -->
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="editNoteDueDate" class="form-label">Due Date</label>
-                                <input type="date" class="form-control" id="editNoteDueDate">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Script loaded');
-
-            // Base API URL (adjust to your backend URL)
-            const API_BASE_URL = 'https://localhost:7010/api'; // Update to your port
-
-            // Get JWT token from localStorage
-            function getToken() {
-                return localStorage.getItem('token');
+        // Check localStorage availability
+        const storageAvailable = () => {
+            try {
+                const testKey = '__test__';
+                localStorage.setItem(testKey, testKey);
+                localStorage.removeItem(testKey);
+                return true;
+            } catch (e) {
+                return false;
             }
+        };
 
-            // Logout function
-            function logout() {
+        const isStorageAvailable = storageAvailable();
+
+        // Logout function
+        function logout() {
+            if (isStorageAvailable) {
                 localStorage.removeItem('token');
-                window.location.href = '/';
             }
+            window.location.href = '/';
+        }
 
-            // Theme toggle
-            const themeToggle = document.querySelector('.theme-toggle');
-            themeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                const icon = themeToggle.querySelector('i');
-                icon.classList.toggle('bi-moon-stars');
-                icon.classList.toggle('bi-sun');
+        // Theme toggle
+        const themeToggle = document.querySelector('.theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = themeToggle.querySelector('i');
+            icon.classList.toggle('bi-moon-stars');
+            icon.classList.toggle('bi-sun');
+        });
+
+        // Note management
+        let notes = isStorageAvailable ? JSON.parse(localStorage.getItem('notes') || '[]') : [];
+
+        const noteForm = document.getElementById('noteForm');
+        const notesContainer = document.getElementById('notesContainer');
+        const filterStatus = document.getElementById('filterStatus');
+        const remindersContainer = document.getElementById('remindersContainer');
+
+        // Render notes
+        function renderNotes(filter = 'all') {
+            notesContainer.innerHTML = '';
+            const filteredNotes = filter === 'all' ? notes : notes.filter(note => note.status === filter);
+            filteredNotes.forEach((note, index) => {
+                const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : 'No due date';
+                const badgeClass = {
+                    todo: 'bg-info',
+                    'in-progress': 'bg-warning',
+                    done: 'bg-success'
+                }[note.status];
+                const card = document.createElement('div');
+                card.className = 'col-md-4 mb-3';
+                card.innerHTML = `
+                            <div class="card note-card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">${note.title}</h5>
+                                    <p class="card-text">${note.content}</p>
+                                    <p><small class="text-muted">Priority: ${note.priority}</small></p>
+                                    <p><small class="text-muted">Due: ${dueDate}</small></p>
+                                    <p><small class="text-muted">Tags: ${note.tags.join(', ')}</small></p>
+                                    <span class="badge ${badgeClass} status-badge">${note.status}</span>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="editNote(${index})">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(${index})">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                notesContainer.appendChild(card);
             });
+            renderReminders();
+            updateProgressChart();
+        }
 
-            // API request helper
-            async function apiRequest(endpoint, method = 'GET', data = null) {
-                const token = getToken();
-                console.log('Token:', token ? 'Present' : 'Missing');
-                if (!token) {
-                    alert('You are not logged in. Redirecting to login page.');
-                    window.location.href = '/';
-                    return;
-                }
-
-                const options = {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                };
-                if (data) {
-                    options.body = JSON.stringify(data);
-                    console.log('Request body:', options.body);
-                }
-
-                console.log('Fetching:', `${API_BASE_URL}${endpoint}`);
-                try {
-                    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-                    console.log('Response status:', response.status);
-                    const contentType = response.headers.get('content-type');
-                    if (response.status === 401) {
-                        alert('Session expired. Please log in again.');
-                        logout();
-                        return;
-                    }
-                    if (!response.ok || !contentType || !contentType.includes('application/json')) {
-                        const text = await response.text();
-                        console.error('Non-JSON response:', text.substring(0, 100)); // Log first 100 chars
-                        throw new Error(`Invalid response: ${response.status} - Expected JSON, got HTML`);
-                    }
-                    return response.status === 204 ? null : response.json();
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    throw error;
-                }
+        // Add note
+        noteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!isStorageAvailable) {
+                alert('Local storage is not available.');
+                return;
             }
-
-
-            // Note management
-            let notes = [];
-            let priorities = [];
-            let statuses = [];
-            let showDeleted = false;
-
-            const noteForm = document.getElementById('noteForm');
-            const notesContainer = document.getElementById('notesContainer');
-            const filterStatus = document.getElementById('filterStatus');
-            const remindersContainer = document.getElementById('remindersContainer');
-
-            console.log('noteForm:', noteForm ? 'Found' : 'Not found');
-
-            // Fetch priorities and statuses
-            async function fetchPrioritiesAndStatuses() {
-                try {
-                    // Temporary hardcoded data (replace with API calls)
-                    priorities = [
-                        { id: 1, name: 'low', level: 1, color: '#00ff00' },
-                        { id: 2, name: 'medium', level: 2, color: '#ffff00' },
-                        { id: 3, name: 'high', level: 3, color: '#ff0000' },
-                        { id: 4, name: 'critical', level: 4, color: '#ff0000' },
-                        { id: 5, name: 'none', level: 5, color: '#cccccc' }
-                    ];
-                    statuses = [
-                        { id: 1, name: 'todo' },
-                        { id: 2, name: 'in-progress' },
-                        { id: 3, name: 'Completed' },
-                        { id: 4, name: 'blocked' },
-                        { id: 5, name: 'cancelled' }
-                    ];
-                    console.log('Priorities:', priorities);
-                    console.log('Statuses:', statuses);
-
-                    // Populate dropdowns
-                    const prioritySelect = document.getElementById('notePriority');
-                    const editPrioritySelect = document.getElementById('editNotePriority');
-                    priorities.forEach(p => {
-                        const option = new Option(p.name, p.id);
-                        prioritySelect.appendChild(option.cloneNode(true));
-                        editPrioritySelect.appendChild(option);
-                    });
-
-                    const statusSelect = document.getElementById('noteStatus');
-                    const editStatusSelect = document.getElementById('editNoteStatus');
-                    statuses.forEach(s => {
-                        const option = new Option(s.name, s.id);
-                        statusSelect.appendChild(option.cloneNode(true));
-                        editStatusSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error fetching priorities/statuses:', error);
-                    alert('Failed to load priorities or statuses: ' + error.message);
-                }
-            }
-
-            // Fetch notes
-            async function fetchNotes() {
-                try {
-                    const query = showDeleted ? '?includeDeleted=true' : '';
-                    notes = await apiRequest(`/notes${query}`);
-                    console.log('Fetched notes:', notes);
-                    renderNotes(filterStatus.value);
-                } catch (error) {
-                    console.error('Error fetching notes:', error);
-                    alert('Failed to load notes: ' + error.message);
-                }
-            }
-
-            // Toggle deleted notes
-            window.toggleDeletedNotes = async () => {
-                showDeleted = !showDeleted;
-                document.querySelector('button[onclick="toggleDeletedNotes()"]').textContent =
-                    showDeleted ? 'Hide Deleted Notes' : 'Show Deleted Notes';
-                await fetchNotes();
+            const note = {
+                title: document.getElementById('noteTitle').value,
+                content: document.getElementById('noteContent').value,
+                priority: document.getElementById('notePriority').value,
+                status: document.getElementById('noteStatus').value,
+                dueDate: document.getElementById('noteDueDate').value,
+                tags: document.getElementById('noteTags').value.split(',').map(tag => tag.trim()).filter(tag => tag)
             };
+            notes.push(note);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            noteForm.reset();
+            renderNotes(filterStatus.value);
+        });
 
-            // Render notes
-            function renderNotes(filter = 'all') {
-                notesContainer.innerHTML = '';
-                const filteredNotes = filter === 'all' ? notes : notes.filter(note => note.statusName === filter);
-                filteredNotes.forEach((note, index) => {
-                    const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : 'No due date';
-                    const badgeClass = {
-                        'todo': 'bg-info',
-                        'in-progress': 'bg-warning',
-                        'done': 'bg-success'
-                    }[note.statusName];
-                    const card = document.createElement('div');
-                    card.className = 'col-md-4 mb-3';
-                    card.innerHTML = `
-                           <div class="card note-card shadow-sm ${note.isDeleted ? 'border-danger' : ''}">
-                               <div class="card-body">
-                                   <h5 class="card-title">${note.title}</h5>
-                                   <p class="card-text">${note.content}</p>
-                                   <p><small class="text-muted">Priority: ${note.priorityName}</small></p>
-                                   <p><small class="text-muted">Due: ${dueDate}</small></p>
-                                   <span class="badge ${badgeClass} status-badge">${note.statusName}</span>
-                                   ${note.isDeleted ? '<span class="badge bg-danger ms-2">Deleted</span>' : ''}
-                                   <div class="mt-3">
-                                       ${note.isDeleted ?
-                            `<button class="btn btn-sm btn-outline-success" onclick="restoreNote('${note.noteId}')">Restore</button>` :
-                            `<button class="btn btn-sm btn-outline-primary me-2" onclick="editNote('${note.noteId}')">Edit</button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteNote('${note.noteId}', ${index})">Delete</button>`
-                        }
-                                   </div>
-                               </div>
-                           </div>
-                       `;
-                    notesContainer.appendChild(card);
-                });
-                renderReminders();
-                updateProgressChart();
+        // Delete note
+        window.deleteNote = (index) => {
+            notes.splice(index, 1);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            renderNotes(filterStatus.value);
+        };
+
+        // Edit note (basic implementation)
+        window.editNote = (index) => {
+            const note = notes[index];
+            document.getElementById('noteTitle').value = note.title;
+            document.getElementById('noteContent').value = note.content;
+            document.getElementById('notePriority').value = note.priority;
+            document.getElementById('noteStatus').value = note.status;
+            document.getElementById('noteDueDate').value = note.dueDate;
+            document.getElementById('noteTags').value = note.tags.join(', ');
+            deleteNote(index);
+        };
+
+        // Filter notes
+        filterStatus.addEventListener('change', () => {
+            renderNotes(filterStatus.value);
+        });
+
+        // Render reminders
+        function renderReminders() {
+            remindersContainer.innerHTML = '';
+            const upcomingNotes = notes.filter(note => note.dueDate && new Date(note.dueDate) > new Date());
+            if (upcomingNotes.length === 0) {
+                remindersContainer.innerHTML = '<p class="text-muted">No upcoming reminders.</p>';
+                return;
             }
-
-            // Add note
-            if (noteForm) {
-                noteForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    console.log('Form submitted');
-                    const note = {
-                        title: document.getElementById('noteTitle').value,
-                        content: document.getElementById('noteContent').value,
-                        priorityId: parseInt(document.getElementById('notePriority').value),
-                        statusId: parseInt(document.getElementById('noteStatus').value),
-                        dueDate: document.getElementById('noteDueDate').value || null
-                    };
-                    console.log('Note data:', note);
-                    try {
-                        await apiRequest('/notes', 'POST', note);
-                        noteForm.reset();
-                        await fetchNotes();
-                        alert('Note added successfully');
-                    } catch (error) {
-                        console.error('Error creating note:', error);
-                        alert('Failed to create note: ' + error.message);
-                    }
-                });
-            } else {
-                console.error('noteForm not found');
-            }
-
-            // Delete note
-            window.deleteNote = async (id, index) => {
-                try {
-                    await apiRequest(`/notes/${id}`, 'DELETE');
-                    notes.splice(index, 1);
-                    renderNotes(filterStatus.value);
-                } catch (error) {
-                    console.error('Error deleting note:', error);
-                    alert('Failed to delete note: ' + error.message);
-                }
-            };
-
-            // Restore note
-            window.restoreNote = async (id) => {
-                try {
-                    await apiRequest(`/notes/${id}/restore`, 'PATCH');
-                    await fetchNotes();
-                } catch (error) {
-                    console.error('Error restoring note:', error);
-                    alert('Failed to restore note: ' + error.message);
-                }
-            };
-
-            // Edit note
-            window.editNote = async (id) => {
-                const note = notes.find(n => n.noteId === id);
-                if (!note) return;
-                document.getElementById('editNoteId').value = note.noteId;
-                document.getElementById('editNoteTitle').value = note.title;
-                document.getElementById('editNoteContent').value = note.content;
-                document.getElementById('editNotePriority').value = note.priorityId;
-                document.getElementById('editNoteStatus').value = note.statusId;
-                document.getElementById('editNoteDueDate').value = note.dueDate ? new Date(note.dueDate).toISOString().split('T')[0] : '';
-
-                const modal = new bootstrap.Modal(document.getElementById('editNoteModal'));
-                modal.show();
-            };
-
-            // Handle edit form submission
-            const editNoteForm = document.getElementById('editNoteForm');
-            if (editNoteForm) {
-                editNoteForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const id = document.getElementById('editNoteId').value;
-                    const note = {
-                        title: document.getElementById('editNoteTitle').value,
-                        content: document.getElementById('editNoteContent').value,
-                        priorityId: parseInt(document.getElementById('editNotePriority').value),
-                        statusId: parseInt(document.getElementById('editNoteStatus').value),
-                        dueDate: document.getElementById('editNoteDueDate').value || null
-                    };
-                    console.log('Edit note data:', note);
-                    try {
-                        await apiRequest(`/notes/${id}`, 'PUT', note);
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('editNoteModal'));
-                        modal.hide();
-                        await fetchNotes();
-                    } catch (error) {
-                        console.error('Error updating note:', error);
-                        alert('Failed to update note: ' + error.message);
-                    }
-                });
-            }
-
-            // Filter notes
-            filterStatus.addEventListener('change', () => {
-                renderNotes(filterStatus.value);
+            upcomingNotes.forEach(note => {
+                const dueDate = new Date(note.dueDate).toLocaleDateString();
+                const reminder = document.createElement('div');
+                reminder.className = 'alert alert-info';
+                reminder.innerHTML = `
+                            <strong>${note.title}</strong>: Due on ${dueDate}
+                            <p>${note.content}</p>
+                        `;
+                remindersContainer.appendChild(reminder);
             });
+        }
 
-            // Render reminders
-            function renderReminders() {
-                remindersContainer.innerHTML = '';
-                const upcomingNotes = notes.filter(note => note.dueDate && new Date(note.dueDate) > new Date());
-                if (upcomingNotes.length === 0) {
-                    remindersContainer.innerHTML = '<p class="text-muted">No upcoming reminders.</p>';
-                    return;
-                }
-                upcomingNotes.forEach(note => {
-                    const dueDate = new Date(note.dueDate).toLocaleDateString();
-                    const reminder = document.createElement('div');
-                    reminder.className = 'alert alert-info';
-                    reminder.innerHTML = `
-                           <strong>${note.title}</strong>: Due on ${dueDate}
-                           <p>${note.content}</p>
-                       `;
-                    remindersContainer.appendChild(reminder);
-                });
-            }
+        // Progress chart
+        function updateProgressChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            const statusCounts = {
+                todo: notes.filter(n => n.status === 'todo').length,
+                'in-progress': notes.filter(n => n.status === 'in-progress').length,
+                done: notes.filter(n => n.status === 'done').length
+            };
 
-            // Progress chart
-            function updateProgressChart() {
-                const ctx = document.getElementById('progressChart').getContext('2d');
-                const statusCounts = {
-                    todo: notes.filter(n => n.statusName === 'todo').length,
-                    'in-progress': notes.filter(n => n.statusName === 'in-progress').length,
-                    done: notes.filter(n => n.statusName === 'done').length
-                };
-                new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Todo', 'In Progress', 'Done'],
-                        datasets: [{
-                            data: [statusCounts.todo, statusCounts['in-progress'], statusCounts.done],
-                            backgroundColor: ['#36A2EB', '#FFCE56', '#4BC0C0'],
-                            borderColor: ['#fff', '#fff', '#fff'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: { font: { family: 'Segoe UI', size: 14 } }
+            ```chartjs
+                    {
+                        type: 'pie',
+                        data: {
+                            labels: ['Todo', 'In Progress', 'Done'],
+                            datasets: [{
+                                data: [statusCounts.todo, statusCounts['in-progress'], statusCounts.done],
+                                backgroundColor: ['#36A2EB', '#FFCE56', '#4BC0C0'],
+                                borderColor: ['#fff', '#fff', '#fff'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            family: 'Segoe UI',
+                                            size: 14
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                });
-            }
+}
 
-            // Initialize
-            async function init() {
-                await fetchPrioritiesAndStatuses();
-                await fetchNotes();
-            }
-            init();
-        });
+// Initial render
+renderNotes();
     </script>
-
